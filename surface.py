@@ -20,7 +20,6 @@ class surface():
        self.pathtext=""
        self.check_buttons = list()
        self.allFilePath=[]
-
        vart = StringVar()
        vart.set("路径：")
        tkinter.Label(self.top,textvariable=vart,justify=LEFT,padx=1)
@@ -33,19 +32,23 @@ class surface():
        e1ts.grid(row=0, column=4, padx=10, pady=5)  # sss
        B3 = tkinter.Button(self.top, text="选择保存路径", command=lambda: self.getSaveFile())
        B3.grid(row=0, column=5, padx=10, pady=5)
+
+       B4 = tkinter.Button(self.top, text="删除", command=lambda: self.detelFile())
+       B4.grid(row=0, column=6, padx=10, pady=5)
        #分析
        B1 = tkinter.Button(self.top, text="复制", command=lambda: self.Copyfile())
-       B1.grid(row=0, column=6, padx=10, pady=5)
+       B1.grid(row=0, column=7, padx=10, pady=5)
        vartr = StringVar()
        vartr.set("要查找的字以“,”分开：")
        tkinter.Label(self.top,textvariable=vartr,justify=LEFT,padx=10)
        self.top.mainloop()
     def getFile(self):
         default_dir="文件路径"
-
         fname=tkinter.filedialog.askdirectory(title='选择文件',initialdir=(os.path.expanduser((default_dir))))
         self.getAllPathFile(fname)
-
+        self.createCheckButton()
+        self.v1.set(fname)
+    def createCheckButton(self):
         c=1
         for girl in self.allFile:
             var = IntVar()
@@ -54,12 +57,24 @@ class surface():
                 ss.grid(row=int(c / 7)+1, column=c%7+1, padx=1, pady=1,sticky=W)  # 左对齐
             c=c+1
             var.set(0)
-            self.check_buttons.append([var,girl])
-        self.v1.set(fname)
-    def checkboxComm(self):
-        if self.var.get()==1:
+            self.check_buttons.append([var,girl,ss])
+        self.top.update()
+    def detelFile(self):
+        for filepath in self.allFilePath:
+            enpaths=Path(filepath)
+            if enpaths.is_file():
+                allPath = os.path.basename(filepath)
+                for checked in self.check_buttons:
+                    if checked[0].get() == 1:
+                        enpath = checked[1]
+                        if allPath == enpath:
+                            z = checked[2]
+                            z.destroy()
+                            os.remove(filepath)
+                            self.allFilePath.remove(filepath)
+                            self.allFile.remove(enpath)
+        result = messagebox.showinfo(title='信息提示！', message='删除成功')
 
-           print()
 
     def getSaveFile(self):
         default_dir = "文件路径"
