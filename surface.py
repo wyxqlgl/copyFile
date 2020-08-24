@@ -6,8 +6,8 @@ import tkinter.filedialog
 from shutil import copyfile
 from pathlib import Path
 from tkinter import messagebox
-
-
+from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 class surface():
     def __init__(self):
        self.top = tkinter.Tk()
@@ -20,6 +20,7 @@ class surface():
        self.pathtext=""
        self.check_buttons = list()
        self.allFilePath=[]
+       self.PageSize=0
        vart = StringVar()
        vart.set("路径：")
        tkinter.Label(self.top,textvariable=vart,justify=LEFT,padx=1)
@@ -36,7 +37,7 @@ class surface():
        B4 = tkinter.Button(self.top, text="删除", command=lambda: self.detelFile())
        B4.grid(row=0, column=6, padx=10, pady=5)
        #分析
-       B1 = tkinter.Button(self.top, text="复制", command=lambda: self.Copyfile())
+       B1 = tkinter.Button(self.top, text="复制", command=lambda: self.CopyfileThread())
        B1.grid(row=0, column=7, padx=10, pady=5)
        vartr = StringVar()
        vartr.set("要查找的字以“,”分开：")
@@ -46,19 +47,30 @@ class surface():
         default_dir="文件路径"
         fname=tkinter.filedialog.askdirectory(title='选择文件',initialdir=(os.path.expanduser((default_dir))))
         self.getAllPathFile(fname)
-        self.createCheckButton()
+        self.getThread()
         self.v1.set(fname)
+    def getThread(self):
+        with ThreadPoolExecutor(10) as executor:
+            executor.submit(self.createCheckButton())
     def createCheckButton(self):
         c=1
         for girl in self.allFile:
             var = IntVar()
             ss = Checkbutton(self.top, text=girl, variable=var)
-            if c%7 !=0:
-                ss.grid(row=int(c / 7)+1, column=c%7+1, padx=1, pady=1,sticky=W)  # 左对齐
-            c=c+1
+            if c%4 !=0:
+                ss.grid(row=int(c / 4)+1, column=c%4+1, padx=1, pady=1,sticky=W)  # 左对齐
+            c = c + 1
             var.set(0)
+            self.allFile.remove(girl)
+            if c %30==0:
+                self.PageSize = int(c / 4) + 2
+                self.setpage()
+                break
             self.check_buttons.append([var,girl,ss])
         self.top.update()
+    def setpage(self):
+        Bt = tkinter.Button(self.top, text="下一页", command=lambda: self.getThread())
+        Bt.grid(row=self.PageSize, column=3, padx=10, pady=5)
     def detelFile(self):
         for filepath in self.allFilePath:
             enpaths=Path(filepath)
@@ -81,7 +93,9 @@ class surface():
         fname = tkinter.filedialog.askdirectory(title='选择文件', initialdir=(os.path.expanduser((default_dir))))
         self.v3.set(fname)
 
-
+    def CopyfileThread(self):
+        with ThreadPoolExecutor(10) as executor:
+            executor.submit(self.Copyfile())
     def Copyfile(self):
         for filepath in self.allFilePath:
             allPath=os.path.basename(filepath)
